@@ -1,18 +1,20 @@
 package com.JVictor011.maquina_de_turing.service;
 
-import com.JVictor011.maquina_de_turing.dto.TuringStepDetails;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
 public class WebSocketService {
+
     private final SimpMessagingTemplate messagingTemplate;
 
+    @Autowired
     public WebSocketService(SimpMessagingTemplate messagingTemplate) {
         this.messagingTemplate = messagingTemplate;
     }
 
-    public void sendToClient(TuringStepDetails stepDetails) {
-        messagingTemplate.convertAndSend("/topic/turingStep", stepDetails); // Rota do WebSocket que o frontend está ouvindo
+    public void sendMessageToFrontend(String destination, Object message) {
+        messagingTemplate.convertAndSend(destination, message);
     }
 }

@@ -1,47 +1,40 @@
 package com.JVictor011.maquina_de_turing.service;
 
 import com.JVictor011.maquina_de_turing.controller.TuringMachineController;
-import com.JVictor011.maquina_de_turing.dto.TuringMachineResponse;
-import com.JVictor011.maquina_de_turing.dto.TuringMessage;
-import com.JVictor011.maquina_de_turing.dto.TuringStepDetails;
+import com.JVictor011.maquina_de_turing.dto.*;
 import com.JVictor011.maquina_de_turing.model.Tape;
 import com.JVictor011.maquina_de_turing.model.Transition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.JVictor011.maquina_de_turing.dto.TuringMachineRequest;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class TuringMachineService {
 
-    private final MessagingService messagingService;
-
-    public TuringMachineService(MessagingService messagingService) {
-        this.messagingService = messagingService;
-    }
-
     private static final Logger logger = LoggerFactory.getLogger(TuringMachineService.class);
+
+    private final WebSocketService webSocketService;
+
+    @Autowired
+    public TuringMachineService(WebSocketService webSocketService) {
+        this.webSocketService = webSocketService;
+    }
 
     @RabbitListener(queues = "turing-machine-queue", containerFactory = "rabbitListenerContainerFactory")
     public void receiveMessage(TuringMessage message) {
         try {
-            logger.info("Received message: {}", message);
-
             if (message != null && message.getStepDetails() != null) {
-                messagingService.sendStepToFrontend(message.getStepDetails()); // Send stepDetails to frontend
+                webSocketService.sendMessageToFrontend("/topic/turing", message.getStepDetails());
             } else {
-                logger.error("Message or StepDetails are null: {}", message);
-                messagingService.sendStepToFrontend(new TuringStepDetails(0, "")); // Send default value
+                webSocketService.sendMessageToFrontend("/topic/turing", new TuringStepDetails(0, ""));
             }
         } catch (Exception e) {
-            logger.error("Error processing message: {}", message, e);
+            logger.error("Erro ao processar a mensagem", e);
         }
     }
 
@@ -57,6 +50,8 @@ public class TuringMachineService {
 
         initializeTape(tape, request.getInput());
 
+        List<TuringExecutionStep> executionSteps = new ArrayList<>();
+
         while (true) {
             char readSymbol = tape.read() == '_' ? ' ' : tape.read();
 
@@ -70,11 +65,18 @@ public class TuringMachineService {
 
             TuringStepDetails stepDetails = new TuringStepDetails(tape.getHeadPosition(), String.valueOf(transition.getWriteSymbol()));
 
-            messagingService.sendStepToQueue(stepDetails);
+            webSocketService.sendMessageToFrontend("/topic/turing", stepDetails);
 
             tape.write(transition.getWriteSymbol());
             tape.moveHead(transition.getDirectionAsInt());
             currentState = transition.getNextState();
+
+            executionSteps.add(new TuringExecutionStep(
+                    currentState,
+                    readSymbol,
+                    tape.toString(),
+                    transition.toString()
+            ));
 
             System.out.println("Estado atual: " + currentState);
             System.out.println("Símbolo lido: " + readSymbol);
@@ -82,7 +84,7 @@ public class TuringMachineService {
             System.out.println("Próxima transição: " + transition);
         }
 
-        return new TuringMachineResponse(tape.toString(), currentState, isFinalState(currentState));
+        return new TuringMachineResponse(executionSteps, tape.toString(), currentState, isFinalState(currentState));
     }
 
     private List<Transition> initializeTransitions(String bodyTransitions) {

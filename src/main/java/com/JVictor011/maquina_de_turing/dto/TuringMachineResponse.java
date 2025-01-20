@@ -4,10 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 public class TuringMachineResponse {
     private String tapeContent;
     private String currentState;
     private boolean isAccepted;
+    private List<TuringExecutionStep> turingExecutionSteps;
 
     public TuringMachineResponse(){}
 
@@ -15,6 +18,21 @@ public class TuringMachineResponse {
         this.tapeContent = tapeContent;
         this.currentState = currentState;
         this.isAccepted = isAccepted;
+    }
+
+    public TuringMachineResponse(List<TuringExecutionStep> turingExecutionSteps, String tapeContent, String currentState, boolean isAccepted) {
+        this.turingExecutionSteps = turingExecutionSteps;
+        this.tapeContent = tapeContent;
+        this.currentState = currentState;
+        this.isAccepted = isAccepted;
+    }
+
+    public List<TuringExecutionStep> getTuringExecutionSteps() {
+        return turingExecutionSteps;
+    }
+
+    public void setTuringExecutionSteps(List<TuringExecutionStep> turingExecutionSteps) {
+        this.turingExecutionSteps = turingExecutionSteps;
     }
 
     public String getTapeContent() {
