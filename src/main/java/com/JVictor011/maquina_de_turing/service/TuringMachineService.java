@@ -18,25 +18,25 @@ public class TuringMachineService {
 
     private static final Logger logger = LoggerFactory.getLogger(TuringMachineService.class);
 
-    private final WebSocketService webSocketService;
-
-    @Autowired
-    public TuringMachineService(WebSocketService webSocketService) {
-        this.webSocketService = webSocketService;
-    }
-
-    @RabbitListener(queues = "turing-machine-queue", containerFactory = "rabbitListenerContainerFactory")
-    public void receiveMessage(TuringMessage message) {
-        try {
-            if (message != null && message.getStepDetails() != null) {
-                webSocketService.sendMessageToFrontend("/topic/turing", message.getStepDetails());
-            } else {
-                webSocketService.sendMessageToFrontend("/topic/turing", new TuringStepDetails(0, ""));
-            }
-        } catch (Exception e) {
-            logger.error("Erro ao processar a mensagem", e);
-        }
-    }
+//    private final WebSocketService webSocketService;
+//
+//    @Autowired
+//    public TuringMachineService(WebSocketService webSocketService) {
+//        this.webSocketService = webSocketService;
+//    }
+//
+//    @RabbitListener(queues = "turing-machine-queue", containerFactory = "rabbitListenerContainerFactory")
+//    public void receiveMessage(TuringMessage message) {
+//        try {
+//            if (message != null && message.getStepDetails() != null) {
+//                webSocketService.sendMessageToFrontend("/topic/turing", message.getStepDetails());
+//            } else {
+//                webSocketService.sendMessageToFrontend("/topic/turing", new TuringStepDetails(0, ""));
+//            }
+//        } catch (Exception e) {
+//            logger.error("Erro ao processar a mensagem", e);
+//        }
+//    }
 
 
     public TuringMachineResponse runMachine(TuringMachineRequest request) {
@@ -65,7 +65,7 @@ public class TuringMachineService {
 
             TuringStepDetails stepDetails = new TuringStepDetails(tape.getHeadPosition(), String.valueOf(transition.getWriteSymbol()));
 
-            webSocketService.sendMessageToFrontend("/topic/turing", stepDetails);
+            // webSocketService.sendMessageToFrontend("/topic/turing", stepDetails);
 
             tape.write(transition.getWriteSymbol());
             tape.moveHead(transition.getDirectionAsInt());
