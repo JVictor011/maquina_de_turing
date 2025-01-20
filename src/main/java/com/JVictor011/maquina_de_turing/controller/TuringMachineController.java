@@ -8,9 +8,11 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 
 @Controller
+@RequestMapping("/api/turing-machine")
 public class TuringMachineController {
     private final SimpMessagingTemplate messagingTemplate;
     private final TuringMachineService service;
@@ -22,7 +24,12 @@ public class TuringMachineController {
 
     @PostMapping("/run")
     public ResponseEntity<TuringMachineResponse> runMachine(@RequestBody TuringMachineRequest request) {
-        TuringMachineResponse response = service.runMachine(request);
-        return ResponseEntity.ok(response);
+        try {
+            TuringMachineResponse response = service.runMachine(request);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 }
