@@ -63,7 +63,7 @@ public class TuringMachineService {
 
             Transition transition = transitionTable.get(key);
 
-            TuringStepDetails stepDetails = new TuringStepDetails(tape.getHeadPosition(), String.valueOf(transition.getWriteSymbol()));
+            // TuringStepDetails stepDetails = new TuringStepDetails(tape.getHeadPosition(), String.valueOf(transition.getWriteSymbol()));
 
             // webSocketService.sendMessageToFrontend("/topic/turing", stepDetails);
 
@@ -74,7 +74,7 @@ public class TuringMachineService {
             executionSteps.add(new TuringExecutionStep(
                     currentState,
                     readSymbol,
-                    tape.toString(),
+                    tape.toString().replace("_", ""),
                     transition.toString()
             ));
 
